@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XelbMinds — Aprender & Crescer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fredoka:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { min-height: 100vh; }
+    body { font-family: 'DM Sans', 'Segoe UI', sans-serif; background: #F7FAF2; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #D0D0D0; border-radius: 10px; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    button:hover { filter: brightness(0.95); }
+    table tr:hover { background: rgba(245,245,245,0.4); }
+    #loading { display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'DM Sans', sans-serif; color: #999; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div id="root"><div id="loading">A carregar XelbMinds...</div></div>
+
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect, useMemo, useCallback } = React;
+
+
+const C = {
+  teal: "#2E6B7A", tealL: "#3D8B9A", tealD: "#1E4B56",
+  green: "#7CB342", greenL: "#A5D66F", greenP: "#E8F5C8", greenM: "#F0F8E4",
+  white: "#FFF", offW: "#F7FAF2",
+  g100: "#F5F5F5", g200: "#E8E8E8", g300: "#D0D0D0", g400: "#999", g600: "#666", g800: "#333",
+  red: "#E53935", redL: "#FFEBEE", orange: "#FF9800", orangeL: "#FFF3E0",
+  blue: "#1976D2", blueL: "#E3F2FD",
+  gS: "#43A047", gSL: "#E8F5E9", purple: "#7B1FA2", purpleL: "#F3E5F5",
+};
+
+const FEE = 100;
+const SUBJECTS = ["Matemática","Português","Inglês","Física e Química","Biologia e Geologia","Geografia","História","Economia","Filosofia","Geometria Descritiva"];
+const GRADES = ["5º Ano","6º Ano","7º Ano","8º Ano","9º Ano","10º Ano","11º Ano","12º Ano"];
+const WEEKDAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+const HOURS = ["09:00","10:00","11:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"];
+const EVALS = ["Insuficiente","Suficiente","Bom","Muito Bom","Excelente"];
+const EVAL_C = {"Insuficiente":C.red,"Suficiente":C.orange,"Bom":C.tealL,"Muito Bom":C.green,"Excelente":C.gS};
+const FN = ["Mariana","Pedro","Ana","Tiago","Beatriz","Miguel","Inês","Rafael","Sofia","Diogo","Leonor","Tomás","Matilde","Gonçalo","Carolina","André","Francisca","João","Marta","Rodrigo","Lara","Bernardo","Sara","Afonso","Catarina","Guilherme","Diana","Henrique","Eva","Duarte","Maria","Gabriel","Joana","Alexandre","Rita","Daniel","Laura","David","Constança","Simão","Alice","Vicente","Clara","Salvador","Bianca","Lourenço","Mafalda","Vasco","Íris","Manuel"];
+const LN = ["Silva","Santos","Costa","Oliveira","Ferreira","Pereira","Rodrigues","Martins","Sousa","Fernandes","Almeida","Gomes","Ribeiro","Lopes","Carvalho","Mendes","Pinto","Correia","Nunes","Moreira","Vieira","Marques","Monteiro","Teixeira","Araújo","Reis","Matos","Fonseca","Rocha","Coelho","Freitas","Tavares","Azevedo","Ramos","Cunha","Cardoso","Campos","Barbosa","Figueiredo","Cruz","Magalhães","Batista","Nogueira","Melo","Simões","Leite","Branco","Gonçalves","Pires","Esteves"];
+
+function rng(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+
+function genStudents() {
+  const r = rng(42);
+  return FN.map((fn, i) => {
+    const ln = LN[i % LN.length];
+    const sc = r() > 0.7 ? 2 : 1;
+    const subs = [];
+    while (subs.length < sc) { const s = SUBJECTS[Math.floor(r() * SUBJECTS.length)]; if (!subs.includes(s)) subs.push(s); }
+    return {
+      id: i + 1,
+      name: `${fn} ${ln}`,
+      email: `${fn.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}.${ln.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}@email.com`,
+      phone: `91${String(Math.floor(r() * 9000000) + 1000000)}`,
+      parentPhone: `96${String(Math.floor(r() * 9000000) + 1000000)}`,
+      parentName: `${r() > 0.5 ? "Sr." : "Sra."} ${ln}`,
+      subjects: subs,
+      grade: GRADES[Math.floor(r() * GRADES.length)],
+      status: r() > 0.08 ? "ativo" : "inativo",
+      scheduleDay: WEEKDAYS[Math.floor(r() * 5)],
+      scheduleHour: HOURS[Math.floor(r() * HOURS.length)],
+      schoolGrades: Array.from({ length: 3 }, (_, t) => ({
+        period: `${t + 1}º Período`,
+        grade: Math.round((r() * 10 + 6) * 10) / 10,
+      })),
+      notes: r() > 0.6 ? "" : ["Aluno com TDAH","Pais divorciados — contactar mãe","Muito tímido","Quer seguir engenharia","Exame nacional em Junho","Dificuldades de concentração","Atleta federado","Precisa reforço extra"][Math.floor(r() * 8)],
+    };
+  });
+}
+
+function genPayments(students) {
+  const r = rng(123);
+  const months = ["Janeiro 2026","Fevereiro 2026","Março 2026","Abril 2026"];
+  const payments = [];
+  let id = 1;
+  students.filter(s => s.status === "ativo").forEach(s => {
+    months.forEach((month, mi) => {
+      const paid = mi < 3 ? r() > 0.12 : r() > 0.55;
+      payments.push({
+        id: id++, studentId: s.id, studentName: s.name, month, amount: FEE,
+        paid, paidDate: paid ? `2026-${String(mi + 1).padStart(2, "0")}-${String(Math.floor(r() * 10) + 1).padStart(2, "0")}` : null,
+      });
+    });
+  });
+  return payments;
+}
+
+function genLessons(students) {
+  const r = rng(789);
+  const sums = {
+    "Matemática": [["Equações do 2º grau","Problemas de aplicação"],["Funções quadráticas","Gráficos"],["Probabilidades","Prob. condicionada"]],
+    "Português": [["Os Lusíadas — Canto I","Inês de Castro"],["Fernando Pessoa","Heterónimos"],["Orações subordinadas","Consolidação"]],
+    "Inglês": [["Past Simple vs Continuous","Present Perfect"],["Reported Speech","Exercícios"],["Reading Comprehension","Writing"]],
+    "Física e Química": [["Leis de Newton","3ª Lei"],["Energia cinética/potencial","Conservação"],["Reações químicas","Estequiometria"]],
+  };
+  const def = [["Revisão","Teste"],["Consolidação","Novos conteúdos"]];
+  const notes = ["Precisa de mais empenho","Compreende o básico","Boa compreensão","Excelente desempenho","Aluno exemplar"];
+  const dates = ["2026-03-24","2026-03-26","2026-03-31","2026-04-02","2026-04-07","2026-04-09"];
+  const lessons = [];
+  let id = 1;
+  students.filter(s => s.status === "ativo").forEach(s => {
+    const n = 2 + Math.floor(r() * 4);
+    for (let i = 0; i < n && i < dates.length; i++) {
+      const sub = s.subjects[0];
+      const pool = sums[sub] || def;
+      const pair = pool[Math.floor(r() * pool.length)];
+      const ei = Math.floor(r() * 5);
+      const files = [];
+      if (r() > 0.3) files.push(`Ficha_${i + 1}.pdf`);
+      if (r() > 0.5) files.push(`Resumo_${i + 1}.pdf`);
+      lessons.push({
+        id: id++, studentId: s.id, date: dates[i], subject: sub,
+        summary: pair[0], nextLesson: pair[1], files,
+        evaluation: EVALS[ei], evalNotes: notes[ei],
+        attendance: r() > 0.1,
+        homework: r() > 0.5 ? `Exercícios ${Math.floor(r() * 20) + 1} a ${Math.floor(r() * 10) + 20}` : "",
+      });
+    }
+  });
+  return lessons;
+}
+
+function genExpenses() {
+  return [
+    { id: 1, description: "Renda do espaço", amount: 650, category: "Instalações", month: "Abril 2026", recurring: true },
+    { id: 2, description: "Eletricidade", amount: 85, category: "Instalações", month: "Abril 2026", recurring: true },
+    { id: 3, description: "Internet fibra", amount: 35, category: "Instalações", month: "Abril 2026", recurring: true },
+    { id: 4, description: "Material escolar", amount: 120, category: "Material", month: "Abril 2026", recurring: false },
+    { id: 5, description: "Software", amount: 25, category: "Tecnologia", month: "Abril 2026", recurring: true },
+    { id: 6, description: "Seguro", amount: 45, category: "Seguros", month: "Abril 2026", recurring: true },
+    { id: 7, description: "Marketing", amount: 60, category: "Marketing", month: "Abril 2026", recurring: false },
+    { id: 8, description: "Limpeza", amount: 100, category: "Instalações", month: "Abril 2026", recurring: true },
+    { id: 9, description: "Renda do espaço", amount: 650, category: "Instalações", month: "Março 2026", recurring: true },
+    { id: 10, description: "Eletricidade", amount: 78, category: "Instalações", month: "Março 2026", recurring: true },
+    { id: 11, description: "Contabilidade", amount: 80, category: "Serviços", month: "Março 2026", recurring: true },
+  ];
+}
+
+// ===== ICONS =====
+function Ico({ d, size = 20, sw = 2, fill = "none" }) {
+  return (<svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={sw}><path d={d} /></svg>);
+}
+const ICONS = {
+  dashboard: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
+  students: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
+  money: "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+  teacher: "M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z",
+  schedule: "M3 4h18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM16 2v4M8 2v4M3 10h18",
+  expense: "M1 4h22a0 0 0 0 1 0 0v16a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4zM1 10h22",
+  announce: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  student: "M22 10v6M2 10l10-5 10 5-10 5zM6 12v5c0 2 4 3 6 3s6-1 6-3v-5",
+  check: "M20 6L9 17l-5-5",
+  plus: "M12 5v14M5 12h14",
+  search: "M21 21l-4.35-4.35M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16z",
+  back: "M19 12H5M12 19l-7-7 7-7",
+  menu: "M3 12h18M3 6h18M3 18h18",
+  bell: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0",
+  right: "M9 18l6-6-6-6",
+  alert: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4M12 16h.01",
+  trend: "M23 6l-9.5 9.5-5-5L1 18M17 6h6v6",
+  file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6",
+  download: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
+  upload: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
+  receipt: "M4 2v20l3-2 3 2 3-2 3 2 3-2 3 2V2l-3 2-3-2-3 2-3-2-3 2-3-2zM8 8h8M8 12h8M8 16h4",
+  printer: "M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z",
+  homework: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z",
+  pct: "M19 5L5 19M6.5 4a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM17.5 14.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z",
+};
+
+function WaIcon() {
+  return (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>);
+}
+
+// ===== UI COMPONENTS =====
+function Toast({ message, type, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
+  return (
+    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, background: type === "success" ? C.gS : C.red, color: "#fff", padding: "12px 20px", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.2)", fontSize: 14, fontWeight: 500, display: "flex", alignItems: "center", gap: 8, animation: "slideUp .3s ease" }}>
+      {message}
+    </div>
+  );
+}
+
+function Bg({ children, color = C.teal, bg }) {
+  return (
+    <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, color, background: bg || `${color}15`, whiteSpace: "nowrap" }}>
+      {children}
+    </span>
+  );
+}
+
+function Btn({ children, onClick, v = "primary", s = "md", icon, style: ex, disabled: d }) {
+  const vs = {
+    primary: { background: C.teal, color: "#fff" }, green: { background: C.green, color: "#fff" },
+    outline: { background: "transparent", color: C.teal, border: `1.5px solid ${C.teal}` },
+    ghost: { background: "transparent", color: C.g600 }, danger: { background: C.red, color: "#fff" },
+    wa: { background: "#25D366", color: "#fff" }, purple: { background: C.purple, color: "#fff" },
+  };
+  const ss = { sm: { padding: "6px 12px", fontSize: 12 }, md: { padding: "10px 18px", fontSize: 13 }, lg: { padding: "12px 24px", fontSize: 14 } };
+  return (
+    <button onClick={d ? undefined : onClick} style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "none", cursor: d ? "not-allowed" : "pointer", borderRadius: 10, fontWeight: 600, fontFamily: "inherit", transition: "all .2s", opacity: d ? 0.5 : 1, ...ss[s], ...vs[v], ...ex }}>
+      {icon}{children}
+    </button>
+  );
+}
+
+function Card({ children, style, onClick }) {
+  return (
+    <div onClick={onClick} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", border: `1px solid ${C.g200}`, cursor: onClick ? "pointer" : "default", ...style }}>
+      {children}
+    </div>
+  );
+}
+
+function SC({ label, value, sub, icon, color = C.teal }) {
+  return (
+    <Card style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <div style={{ width: 46, height: 46, borderRadius: 13, background: `${color}12`, color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{icon}</div>
+      <div><div style={{ fontSize: 12, color: C.g400, marginBottom: 2 }}>{label}</div><div style={{ fontSize: 22, fontWeight: 700, color: C.g800 }}>{value}</div>{sub && <div style={{ fontSize: 11, color: C.g400 }}>{sub}</div>}</div>
+    </Card>
+  );
+}
+
+function Inp({ label, ...p }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      {label && <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.g600, marginBottom: 4 }}>{label}</label>}
+      <input {...p} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.g200}`, fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box", ...p.style }} />
+    </div>
+  );
+}
+
+function Sel({ label, options, ...p }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      {label && <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.g600, marginBottom: 4 }}>{label}</label>}
+      <select {...p} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.g200}`, fontSize: 14, fontFamily: "inherit", background: "#fff", outline: "none", boxSizing: "border-box" }}>
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  );
+}
+
+function Modal({ title, onClose, children, wide }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 20, padding: 28, width: "100%", maxWidth: wide ? 700 : 460, maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h3 style={{ margin: 0, fontSize: 18, color: C.teal, fontWeight: 700 }}>{title}</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: C.g400, fontSize: 20 }}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Av({ name, size = 36 }) {
+  const ini = name.split(" ").map(n => n[0]).join("").slice(0, 2);
+  const h = name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+  return (
+    <div style={{ width: size, height: size, borderRadius: "50%", background: `hsl(${h},42%,62%)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.36, fontWeight: 700, flexShrink: 0 }}>
+      {ini}
+    </div>
+  );
+}
+
+function Logo({ size = 40 }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ width: size, height: size, borderRadius: "50%", background: `linear-gradient(135deg,${C.greenL},${C.green})`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 2px 8px ${C.green}40` }}>
+        <span style={{ color: "#fff", fontWeight: 800, fontSize: size * 0.4 }}>X</span>
+      </div>
+      <div>
+        <span style={{ fontSize: size * 0.42, fontWeight: 800, color: C.green, fontFamily: "'Fredoka',sans-serif" }}>Xelb</span>
+        <span style={{ fontSize: size * 0.42, fontWeight: 800, color: C.teal, fontFamily: "'Fredoka',sans-serif" }}>Minds</span>
+        {size > 35 && <div style={{ fontSize: 8, color: C.g400, letterSpacing: 2, textTransform: "uppercase", marginTop: -2 }}>Aprender & Crescer</div>}
+      </div>
+    </div>
+  );
+}
+
+function TabBar({ tabs, active, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 2, marginBottom: 16, borderBottom: `2px solid ${C.g200}`, paddingBottom: 2, overflowX: "auto" }}>
+      {tabs.map(([k, l]) => (
+        <button key={k} onClick={() => onChange(k)} style={{ padding: "8px 14px", border: "none", background: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", color: active === k ? C.teal : C.g400, borderBottom: active === k ? `2px solid ${C.teal}` : "2px solid transparent", marginBottom: -2 }}>
+          {l}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SBar({ value, onChange }) {
+  return (
+    <div style={{ position: "relative", marginBottom: 16 }}>
+      <span style={{ position: "absolute", left: 14, top: 11, color: C.g400 }}><Ico d={ICONS.search} size={16} /></span>
+      <input value={value} onChange={e => onChange(e.target.value)} placeholder="Pesquisar..." style={{ width: "100%", padding: "10px 14px 10px 38px", borderRadius: 12, border: `1.5px solid ${C.g200}`, fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+    </div>
+  );
+}
+
+function PBar({ value, max, color = C.teal, height = 8 }) {
+  return (
+    <div style={{ height, background: C.g100, borderRadius: height / 2, overflow: "hidden" }}>
+      <div style={{ height: "100%", width: `${Math.min((value / max) * 100, 100)}%`, background: color, borderRadius: height / 2, transition: "width .5s" }} />
+    </div>
+  );
+}
+
+// ===== DASHBOARD =====
+function PageDashboard({ students, payments, lessons, expenses }) {
+  const act = students.filter(s => s.status === "ativo");
+  const tPaid = payments.filter(p => p.paid).reduce((a, p) => a + p.amount, 0);
+  const tPend = payments.filter(p => !p.paid).reduce((a, p) => a + p.amount, 0);
+  const apr = payments.filter(p => p.month === "Abril 2026");
+  const cRate = apr.length ? Math.round(apr.filter(p => p.paid).length / apr.length * 100) : 0;
+  const att = lessons.length ? Math.round(lessons.filter(l => l.attendance).length / lessons.length * 100) : 0;
+  const tExp = expenses.filter(e => e.month === "Abril 2026").reduce((a, e) => a + e.amount, 0);
+  const aprRev = apr.filter(p => p.paid).reduce((a, p) => a + p.amount, 0);
+  const profit = aprRev - tExp;
+  const topDebt = students.map(s => ({ ...s, debt: payments.filter(p => p.studentId === s.id && !p.paid).reduce((a, p) => a + p.amount, 0) })).filter(s => s.debt > 0).sort((a, b) => b.debt - a.debt).slice(0, 6);
+  const mData = ["Jan", "Fev", "Mar", "Abr"].map((m, i) => {
+    const mp = payments.filter(p => p.month.startsWith(["Janeiro", "Fevereiro", "Março", "Abril"][i]));
+    return { m, paid: mp.filter(p => p.paid).reduce((a, p) => a + p.amount, 0), pend: mp.filter(p => !p.paid).reduce((a, p) => a + p.amount, 0) };
+  });
+  const evalDist = {};
+  lessons.forEach(l => { evalDist[l.evaluation] = (evalDist[l.evaluation] || 0) + 1; });
+
+  return (
+    <div>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.g800 }}>Painel de Controlo</h2>
+        <p style={{ margin: "4px 0 0", color: C.g400, fontSize: 14 }}>XelbMinds · Abril 2026</p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 12, marginBottom: 20 }}>
+        <SC label="Alunos Ativos" value={act.length} sub={`${students.length} total`} icon={<Ico d={ICONS.students} />} color={C.teal} />
+        <SC label="Receita Mensal" value={`${(act.length * FEE).toLocaleString()}€`} sub={`${FEE}€/aluno`} icon={<Ico d={ICONS.money} />} color={C.green} />
+        <SC label="Recebido" value={`${tPaid.toLocaleString()}€`} icon={<Ico d={ICONS.check} />} color={C.gS} />
+        <SC label="Em Dívida" value={`${tPend.toLocaleString()}€`} sub={`${topDebt.length} alunos`} icon={<Ico d={ICONS.alert} />} color={C.red} />
+        <SC label="Despesas Abril" value={`${tExp}€`} icon={<Ico d={ICONS.expense} />} color={C.orange} />
+        <SC label="Lucro Abril" value={`${profit > 0 ? "+" : ""}${profit}€`} icon={<Ico d={ICONS.trend} />} color={profit > 0 ? C.gS : C.red} />
+        <SC label="Cobrança Abril" value={`${cRate}%`} icon={<Ico d={ICONS.pct} />} color={cRate > 70 ? C.gS : C.orange} />
+        <SC label="Assiduidade" value={`${att}%`} icon={<Ico d={ICONS.schedule} />} color={C.tealL} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginBottom: 16 }}>
+        <Card>
+          <h4 style={{ margin: "0 0 16px", fontSize: 15, color: C.teal, fontWeight: 700 }}>Receita 2026</h4>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", height: 120, paddingBottom: 24 }}>
+            {mData.map((m, i) => {
+              const mx = Math.max(...mData.map(d => d.paid + d.pend)) || 1;
+              const pH = (m.paid / mx) * 100;
+              const peH = (m.pend / mx) * 100;
+              return (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                  <div style={{ width: "50%", height: peH, background: `${C.red}30`, borderRadius: "4px 4px 0 0", minHeight: peH > 0 ? 3 : 0 }} />
+                  <div style={{ width: "50%", height: pH, background: C.gS, borderRadius: peH > 0 ? 0 : "4px 4px 0 0", opacity: 0.8 }} />
+                  <div style={{ fontSize: 11, color: C.g400, marginTop: 4, fontWeight: 600 }}>{m.m}</div>
+                  <div style={{ fontSize: 10, color: C.g600 }}>{(m.paid + m.pend).toLocaleString()}€</div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+        <Card>
+          <h4 style={{ margin: "0 0 14px", fontSize: 15, color: C.teal, fontWeight: 700 }}>Avaliações</h4>
+          {EVALS.map(e => {
+            const count = evalDist[e] || 0;
+            return (
+              <div key={e} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
+                  <span style={{ color: EVAL_C[e], fontWeight: 600 }}>{e}</span>
+                  <span style={{ color: C.g600 }}>{count}</span>
+                </div>
+                <PBar value={count} max={Math.max(...Object.values(evalDist)) || 1} color={EVAL_C[e]} />
+              </div>
+            );
+          })}
+        </Card>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Card>
+          <h4 style={{ margin: "0 0 12px", fontSize: 15, color: C.red, fontWeight: 700 }}>Maiores Dívidas</h4>
+          {topDebt.map(s => (
+            <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: `1px solid ${C.g100}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Av name={s.name} size={28} />
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.g800 }}>{s.name}</div>
+              </div>
+              <Bg color={C.red} bg={C.redL}>{s.debt}€</Bg>
+            </div>
+          ))}
+        </Card>
+        <Card>
+          <h4 style={{ margin: "0 0 12px", fontSize: 15, color: C.teal, fontWeight: 700 }}>Por Disciplina</h4>
+          {(() => {
+            const c = {};
+            act.forEach(s => s.subjects.forEach(sub => { c[sub] = (c[sub] || 0) + 1; }));
+            const sorted = Object.entries(c).sort((a, b) => b[1] - a[1]);
+            const mx = (sorted[0] && sorted[0][1]) || 1;
+            return sorted.map(([sub, cnt]) => (
+              <div key={sub} style={{ marginBottom: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 2 }}>
+                  <span style={{ color: C.g600 }}>{sub}</span>
+                  <span style={{ fontWeight: 600 }}>{cnt}</span>
+                </div>
+                <PBar value={cnt} max={mx} />
+              </div>
+            ));
+          })()}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ===== SCHEDULE =====
+function PageSchedule({ students }) {
+  const act = students.filter(s => s.status === "ativo");
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.g800 }}>Horário Semanal</h2>
+      </div>
+      <Card style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 800 }}>
+            <thead>
+              <tr style={{ background: C.teal }}>
+                <th style={{ padding: "10px 8px", color: "#fff", fontWeight: 600, fontSize: 11, width: 60 }}>Hora</th>
+                {WEEKDAYS.map(d => <th key={d} style={{ padding: "10px 8px", color: "#fff", fontWeight: 600, fontSize: 11, textAlign: "center" }}>{d}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {HOURS.map(h => (
+                <tr key={h} style={{ borderBottom: `1px solid ${C.g200}` }}>
+                  <td style={{ padding: "8px", fontWeight: 700, color: C.teal, fontSize: 12, background: C.g100, textAlign: "center" }}>{h}</td>
+                  {WEEKDAYS.map(d => {
+                    const sts = act.filter(s => s.scheduleDay === d && s.scheduleHour === h);
+                    return (
+                      <td key={d} style={{ padding: 4, verticalAlign: "top", minWidth: 110 }}>
+                        {sts.map(s => {
+                          const hue = s.name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+                          return (
+                            <div key={s.id} style={{ padding: "4px 6px", background: `hsl(${hue},35%,92%)`, borderRadius: 6, marginBottom: 2, borderLeft: `3px solid hsl(${hue},45%,55%)` }}>
+                              <div style={{ fontSize: 11, fontWeight: 600, color: C.g800 }}>{s.name.split(" ")[0]}</div>
+                              <div style={{ fontSize: 10, color: C.g600 }}>{s.subjects[0]}</div>
+                            </div>
+                          );
+                        })}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+      <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10 }}>
+        {WEEKDAYS.map(d => {
+          const cnt = act.filter(s => s.scheduleDay === d).length;
+          return (
+            <Card key={d} style={{ textAlign: "center", padding: 14 }}>
+              <div style={{ fontSize: 12, color: C.g400, fontWeight: 600 }}>{d}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: C.teal }}>{cnt}</div>
+              <div style={{ fontSize: 11, color: C.g400 }}>aulas</div>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ===== STUDENTS =====
+function PageStudents({ students, setStudents, setToast }) {
+  const [search, setSearch] = useState("");
+  const [fSt, setFSt] = useState("all");
+  const [showModal, setShowModal] = useState(false);
+  const [editSt, setEditSt] = useState(null);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", parentPhone: "", parentName: "", subjects: [""], grade: "", status: "ativo", notes: "", scheduleDay: "Segunda", scheduleHour: "16:00" });
+
+  const filt = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) && (fSt === "all" || s.status === fSt));
+
+  const save = () => {
+    if (!form.name) return;
+    if (editSt) {
+      setStudents(p => p.map(s => s.id === editSt.id ? { ...s, ...form } : s));
+    } else {
+      setStudents(p => [...p, { ...form, id: Date.now(), schoolGrades: [] }]);
+    }
+    setShowModal(false);
+    setToast({ message: editSt ? "Atualizado!" : "Adicionado!", type: "success" });
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.g800 }}>Gestão de Alunos</h2>
+          <p style={{ margin: "4px 0 0", color: C.g400, fontSize: 14 }}>{filt.length} de {students.length}</p>
+        </div>
+        <Btn onClick={() => { setForm({ name: "", email: "", phone: "", parentPhone: "", parentName: "", subjects: [""], grade: "", status: "ativo", notes: "", scheduleDay: "Segunda", scheduleHour: "16:00" }); setEditSt(null); setShowModal(true); }} icon={<Ico d={ICONS.plus} size={16} />}>Novo Aluno</Btn>
+      </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 200 }}><SBar value={search} onChange={setSearch} /></div>
+        <select value={fSt} onChange={e => setFSt(e.target.value)} style={{ padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.g200}`, fontSize: 13, fontFamily: "inherit", background: "#fff" }}>
+          <option value="all">Todos</option><option value="ativo">Ativos</option><option value="inativo">Inativos</option>
+        </select>
+      </div>
+      <Card style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: C.g100 }}>
+                {["Aluno", "Disciplina(s)", "Ano", "Horário", "Estado", "Notas", ""].map(h => (
+                  <th key={h} style={{ textAlign: "left", padding: "12px 14px", color: C.g600, fontWeight: 600, fontSize: 12 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filt.slice(0, 35).map(s => (
+                <tr key={s.id} style={{ borderBottom: `1px solid ${C.g100}` }}>
+                  <td style={{ padding: "10px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Av name={s.name} size={30} />
+                      <div>
+                        <div style={{ fontWeight: 600, color: C.g800 }}>{s.name}</div>
+                        <div style={{ fontSize: 11, color: C.g400 }}>{s.parentName} · {s.parentPhone}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: "10px 14px" }}>{s.subjects.map(sub => <Bg key={sub}>{sub}</Bg>)}</td>
+                  <td style={{ padding: "10px 14px", color: C.g600 }}>{s.grade}</td>
+                  <td style={{ padding: "10px 14px" }}><Bg color={C.blue} bg={C.blueL}>{s.scheduleDay && s.scheduleDay.slice(0, 3)} {s.scheduleHour}</Bg></td>
+                  <td style={{ padding: "10px 14px" }}><Bg color={s.status === "ativo" ? C.gS : C.g400} bg={s.status === "ativo" ? C.gSL : C.g100}>{s.status === "ativo" ? "Ativo" : "Inativo"}</Bg></td>
+                  <td style={{ padding: "10px 14px", fontSize: 11, color: C.g400, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.notes || "—"}</td>
+                  <td style={{ padding: "10px 14px" }}>
+                    <Btn v="ghost" s="sm" onClick={() => { setForm({ ...s }); setEditSt(s); setShowModal(true); }}>Editar</Btn>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+      {showModal && (
+        <Modal title={editSt ? "Editar Aluno" : "Novo Aluno"} onClose={() => setShowModal(false)} wide>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Inp label="Nome" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            <Inp label="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            <Inp label="Tel. Aluno" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+            <Inp label="Enc. Educação" value={form.parentName} onChange={e => setForm({ ...form, parentName: e.target.value })} />
+            <Inp label="Tel. Enc." value={form.parentPhone} onChange={e => setForm({ ...form, parentPhone: e.target.value })} />
+          </div>
+          <Inp label="Disciplinas (vírgula)" value={Array.isArray(form.subjects) ? form.subjects.join(", ") : form.subjects} onChange={e => setForm({ ...form, subjects: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
+            <Sel label="Ano" value={form.grade} onChange={e => setForm({ ...form, grade: e.target.value })} options={[{ value: "", label: "..." }, ...GRADES.map(g => ({ value: g, label: g }))]} />
+            <Sel label="Estado" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} options={[{ value: "ativo", label: "Ativo" }, { value: "inativo", label: "Inativo" }]} />
+            <Sel label="Dia" value={form.scheduleDay} onChange={e => setForm({ ...form, scheduleDay: e.target.value })} options={WEEKDAYS.map(d => ({ value: d, label: d }))} />
+            <Sel label="Hora" value={form.scheduleHour} onChange={e => setForm({ ...form, scheduleHour: e.target.value })} options={HOURS.map(h => ({ value: h, label: h }))} />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.g600, marginBottom: 4 }}>Notas internas</label>
+            <textarea value={form.notes || ""} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.g200}`, fontSize: 14, fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <Btn v="ghost" onClick={() => setShowModal(false)}>Cancelar</Btn>
+            <Btn onClick={save}>{editSt ? "Guardar" : "Adicionar"}</Btn>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ===== FINANCIAL =====
+function PageFinancial({ payments, setPayments, students, setToast }) {
+  const [filter, setFilter] = useState("all");
+  const [mF, setMF] = useState("all");
+  const [search, setSearch] = useState("");
+  const [waM, setWaM] = useState(null);
+  const [bulkWa, setBulkWa] = useState(false);
+  const [receiptM, setReceiptM] = useState(null);
+
+  const months = [...new Set(payments.map(p => p.month))];
+  const filt = payments.filter(p => {
+    const mp = filter === "all" || (filter === "paid" ? p.paid : !p.paid);
+    const mm = mF === "all" || p.month === mF;
+    const ms = p.studentName.toLowerCase().includes(search.toLowerCase());
+    return mp && mm && ms;
+  });
+  const tPaid = payments.filter(p => p.paid).reduce((a, p) => a + p.amount, 0);
+  const tPend = payments.filter(p => !p.paid).reduce((a, p) => a + p.amount, 0);
+  const pendByS = useMemo(() => {
+    const m = {};
+    payments.filter(p => !p.paid).forEach(p => {
+      if (!m[p.studentId]) m[p.studentId] = { sn: p.studentName, sid: p.studentId, total: 0, months: [] };
+      m[p.studentId].total += p.amount;
+      m[p.studentId].months.push(p.month);
+    });
+    return Object.values(m).sort((a, b) => b.total - a.total);
+  }, [payments]);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.g800 }}>Gestão Financeira</h2>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14, marginBottom: 20 }}>
+        <SC label="Recebido" value={`${tPaid.toLocaleString()}€`} icon={<Ico d={ICONS.check} />} color={C.gS} />
+        <SC label="Pendente" value={`${tPend.toLocaleString()}€`} sub={`${pendByS.length} alunos`} icon={<Ico d={ICONS.alert} />} color={C.red} />
+        <SC label="Cobrança" value={`${Math.round(tPaid / (tPaid + tPend) * 100)}%`} icon={<Ico d={ICONS.trend} />} color={C.teal} />
+      </div>
+      {pendByS.length > 0 && (
+        <Card style={{ marginBottom: 16, background: C.orangeL, border: `1px solid ${C.orange}30` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.g800 }}>{pendByS.length} alunos com dívida — {tPend}€</div>
+            <Btn v="wa" icon={<WaIcon />} onClick={() => setBulkWa(true)}>Cobrar Todos</Btn>
+          </div>
+        </Card>
+      )}
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 180 }}><SBar value={search} onChange={setSearch} /></div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {[["all", "Todos"], ["paid", "Pagos"], ["unpaid", "Pendentes"]].map(([v, l]) => (
+            <Btn key={v} v={filter === v ? "primary" : "outline"} s="sm" onClick={() => setFilter(v)}>{l}</Btn>
+          ))}
+        </div>
+        <select value={mF} onChange={e => setMF(e.target.value)} style={{ padding: "8px 12px", borderRadius: 10, border: `1.5px solid ${C.g200}`, fontSize: 12, fontFamily: "inherit", background: "#fff" }}>
+          <option value="all">Todos meses</option>
+          {months.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+      </div>
+      <Card style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: C.g100 }}>
+                {["Aluno", "Mês", "Valor", "Estado", "Ações"].map(h => (
+                  <th key={h} style={{ textAlign: h === "Ações" ? "center" : "left", padding: "12px 14px", color: C.g600, fontWeight: 600, fontSize: 12 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filt.slice(0, 50).map(p => (
+                <tr key={p.id} style={{ borderBottom: `1px solid ${C.g100}` }}>
+                  <td style={{ padding: "10px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Av name={p.studentName} size={28} />
+                      <span style={{ fontWeight: 600, color: C.g800 }}>{p.studentName}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: "10px 14px", color: C.g600 }}>{p.month}</td>
+                  <td style={{ padding: "10px 14px", fontWeight: 700 }}>{p.amount}€</td>
+                  <td style={{ padding: "10px 14px" }}>
+                    <Bg color={p.paid ? C.gS : C.red} bg={p.paid ? C.gSL : C.redL}>{p.paid ? "Pago" : "Pendente"}</Bg>
+                  </td>
+                  <td style={{ padding: "10px 14px", textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
+                      <Btn v={p.paid ? "outline" : "green"} s="sm" onClick={() => {
+                        setPayments(prev => prev.map(x => x.id === p.id ? { ...x, paid: !x.paid, paidDate: !x.paid ? "2026-04-12" : null } : x));
+                        setToast({ message: "Atualizado!", type: "success" });
+                      }}>{p.paid ? "Anular" : "Pago"}</Btn>
+                      {p.paid && <Btn v="outline" s="sm" icon={<Ico d={ICONS.receipt} size={14} />} onClick={() => setReceiptM(p)}>Recibo</Btn>}
+                      {!p.paid && (
+                        <Btn v="wa" s="sm" onClick={() => {
+                          const st = students.find(s => s.id === p.studentId);
+                          if (st) setWaM({ payment: p, student: st });
+                        }} icon={<WaIcon />}>Cobrar</Btn>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {waM && (() => {
+        const rawMsg = `Olá! 👋\nLembrete da *XelbMinds* — Centro de Explicações.\n\nInformamos que o pagamento referente ao mês de *${waM.payment.month}* no valor de *${waM.payment.amount}€* para o/a aluno/a *${waM.student.name}* encontra-se pendente.\n\nAgradecemos a regularização logo que possível.\n\nObrigado! 🙏\n*XelbMinds — Aprender & Crescer*`;
+        const displayMsg = rawMsg.replace(/\n/g, "\n");
+        return (
+          <Modal title="Cobrança WhatsApp" onClose={() => setWaM(null)}>
+            <div style={{ fontSize: 12, color: C.g600, marginBottom: 8 }}>
+              <strong>Aluno:</strong> {waM.student.name} · <strong>Enc. Educação:</strong> {waM.student.parentName} ({waM.student.parentPhone})
+            </div>
+            <div style={{ position: "relative", marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.g400, marginBottom: 4, textTransform: "uppercase" }}>Mensagem</div>
+              <textarea readOnly value={displayMsg} rows={8} style={{ width: "100%", padding: "14px", borderRadius: 12, border: `1.5px solid ${C.g200}`, fontSize: 13, fontFamily: "inherit", background: C.greenM, resize: "none", outline: "none", boxSizing: "border-box", lineHeight: 1.6, color: C.g800 }} onClick={e => e.target.select()} />
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <Btn v="ghost" onClick={() => setWaM(null)}>Cancelar</Btn>
+              <Btn v="outline" icon={<Ico d={ICONS.file} size={14} />} onClick={() => {
+                navigator.clipboard.writeText(displayMsg);
+                setToast({ message: "Mensagem copiada!", type: "success" });
+              }}>Copiar</Btn>
+              <Btn v="wa" onClick={() => {
+                const msg = encodeURIComponent(displayMsg);
+                window.open(`https://wa.me/?text=${msg}`, "_blank");
+                setWaM(null);
+                setToast({ message: "WhatsApp aberto!", type: "success" });
+              }} icon={<WaIcon />}>Abrir WhatsApp</Btn>
+            </div>
+          </Modal>
+        );
+      })()}
+
+      {receiptM && (
+        <Modal title="Recibo" onClose={() => setReceiptM(null)}>
+          <div style={{ border: `2px solid ${C.g200}`, borderRadius: 12, padding: 24, marginBottom: 16 }}>
+            <div style={{ textAlign: "center", marginBottom: 16 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: C.teal }}>XelbMinds</div>
+              <div style={{ fontSize: 11, color: C.g400 }}>Aprender & Crescer</div>
+            </div>
+            <div style={{ borderTop: `1px dashed ${C.g300}`, borderBottom: `1px dashed ${C.g300}`, padding: "12px 0", margin: "12px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: C.g600 }}>Recibo Nº:</span><span style={{ fontWeight: 700 }}>XM-1001</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: C.g600 }}>Aluno:</span><span style={{ fontWeight: 600 }}>{receiptM.studentName}</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: C.g600 }}>Mês:</span><span>{receiptM.month}</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: C.g600 }}>Data:</span><span>{receiptM.paidDate}</span></div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 16 }}>
+              <span style={{ fontWeight: 700 }}>TOTAL</span>
+              <span style={{ fontSize: 24, fontWeight: 800, color: C.gS }}>{receiptM.amount}€</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <Btn v="outline" icon={<Ico d={ICONS.printer} size={14} />} onClick={() => setToast({ message: "Recibo impresso!", type: "success" })}>Imprimir</Btn>
+            <Btn v="outline" icon={<Ico d={ICONS.file} size={14} />} onClick={() => {
+              navigator.clipboard.writeText(`📄 Recibo XelbMinds\nAluno: ${receiptM.studentName}\nMês: ${receiptM.month}\nValor: ${receiptM.amount}€\n✅ Pago\nObrigado! 🙏`);
+              setToast({ message: "Recibo copiado!", type: "success" });
+            }}>Copiar</Btn>
+            <Btn v="wa" icon={<WaIcon />} onClick={() => {
+              const msg = encodeURIComponent(`📄 *Recibo XelbMinds*\nAluno: ${receiptM.studentName}\nMês: ${receiptM.month}\nValor: ${receiptM.amount}€\n✅ Pago\nObrigado! 🙏`);
+              window.open(`https://wa.me/?text=${msg}`, "_blank");
+              setToast({ message: "WhatsApp aberto!", type: "success" });
+            }}>WhatsApp</Btn>
+          </div>
+        </Modal>
+      )}
+
+      {bulkWa && (
+        <Modal title="Cobrança em Massa" onClose={() => setBulkWa(false)} wide>
+          {pendByS.map(ps => {
+            const st = students.find(s => s.id === ps.sid);
+            return (
+              <div key={ps.sid} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${C.g100}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Av name={ps.sn} size={28} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{ps.sn}</div>
+                    <div style={{ fontSize: 11, color: C.g400 }}>{ps.months.join(", ")}</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Bg color={C.red} bg={C.redL}>{ps.total}€</Bg>
+                  <Btn v="outline" s="sm" icon={<Ico d={ICONS.file} size={12} />} onClick={() => {
+                    const txt = `Olá! 👋\nLembrete da *XelbMinds*.\n${ps.sn} — dívida: *${ps.total}€*\nObrigado! 🙏`;
+                    navigator.clipboard.writeText(txt);
+                    setToast({ message: `Mensagem de ${ps.sn.split(" ")[0]} copiada!`, type: "success" });
+                  }}>Copiar</Btn>
+                  <Btn v="wa" s="sm" icon={<WaIcon />} onClick={() => {
+                    const msg = encodeURIComponent(`Olá! 👋\n*XelbMinds*\n${ps.sn} — dívida: *${ps.total}€*\nObrigado! 🙏`);
+                    window.open(`https://wa.me/?text=${msg}`, "_blank");
+                  }}>WhatsApp</Btn>
+                </div>
+              </div>
+            );
+          })}
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ===== EXPENSES =====
+function PageExpenses({ expenses, setExpenses, payments, setToast }) {
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ description: "", amount: "", category: "Instalações", month: "Abril 2026", recurring: false });
+  const [mFilter, setMFilter] = useState("Abril 2026");
+
+  const months = [...new Set(expenses.map(e => e.month))];
+  const filtered = mFilter === "all" ? expenses : expenses.filter(e => e.month === mFilter);
+  const byCategory = {};
+  filtered.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + e.amount; });
+  const totalExp = filtered.reduce((a, e) => a + e.amount, 0);
+  const monthRev = payments.filter(p => p.paid && (mFilter === "all" || p.month === mFilter)).reduce((a, p) => a + p.amount, 0);
+  const profit = monthRev - totalExp;
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.g800 }}>Despesas & Lucro</h2>
+        <Btn onClick={() => setShowModal(true)} icon={<Ico d={ICONS.plus} size={16} />}>Nova Despesa</Btn>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14, marginBottom: 20 }}>
+        <SC label="Receita" value={`${monthRev.toLocaleString()}€`} icon={<Ico d={ICONS.trend} />} color={C.gS} />
+        <SC label="Despesas" value={`${totalExp}€`} icon={<Ico d={ICONS.expense} />} color={C.orange} />
+        <SC label={profit >= 0 ? "Lucro" : "Prejuízo"} value={`${profit > 0 ? "+" : ""}${profit}€`} icon={<Ico d={ICONS.money} />} color={profit >= 0 ? C.gS : C.red} />
+        <SC label="Margem" value={`${monthRev ? Math.round(profit / monthRev * 100) : 0}%`} icon={<Ico d={ICONS.pct} />} color={profit >= 0 ? C.gS : C.red} />
+      </div>
+      <select value={mFilter} onChange={e => setMFilter(e.target.value)} style={{ padding: "8px 12px", borderRadius: 10, border: `1.5px solid ${C.g200}`, fontSize: 12, fontFamily: "inherit", background: "#fff", marginBottom: 16 }}>
+        <option value="all">Todos meses</option>
+        {months.map(m => <option key={m} value={m}>{m}</option>)}
+      </select>
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+        <Card style={{ padding: 0, overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: C.g100 }}>
+                {["Descrição", "Categoria", "Valor", "Tipo", ""].map(h => (
+                  <th key={h} style={{ textAlign: "left", padding: "12px 14px", color: C.g600, fontWeight: 600, fontSize: 12 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(e => (
+                <tr key={e.id} style={{ borderBottom: `1px solid ${C.g100}` }}>
+                  <td style={{ padding: "10px 14px", fontWeight: 600, color: C.g800 }}>{e.description}</td>
+                  <td style={{ padding: "10px 14px" }}><Bg color={C.purple} bg={C.purpleL}>{e.category}</Bg></td>
+                  <td style={{ padding: "10px 14px", fontWeight: 700, color: C.red }}>{e.amount}€</td>
+                  <td style={{ padding: "10px 14px" }}><Bg color={e.recurring ? C.blue : C.g400} bg={e.recurring ? C.blueL : C.g100}>{e.recurring ? "Mensal" : "Pontual"}</Bg></td>
+                  <td style={{ padding: "10px 14px" }}>
+                    <Btn v="ghost" s="sm" onClick={() => { setExpenses(p => p.filter(x => x.id !== e.id)); setToast({ message: "Removida!", type: "success" }); }}>✕</Btn>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+        <Card>
+          <h4 style={{ margin: "0 0 14px", fontSize: 15, color: C.teal, fontWeight: 700 }}>Por Categoria</h4>
+          {Object.entries(byCategory).sort((a, b) => b[1] - a[1]).map(([cat, val]) => (
+            <div key={cat} style={{ marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
+                <span style={{ color: C.g600 }}>{cat}</span><span style={{ fontWeight: 600 }}>{val}€</span>
+              </div>
+              <PBar value={val} max={Math.max(...Object.values(byCategory))} color={C.purple} />
+            </div>
+          ))}
+          <div style={{ marginTop: 14, padding: "10px 14px", background: profit >= 0 ? C.gSL : C.redL, borderRadius: 10, textAlign: "center" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: profit >= 0 ? C.gS : C.red }}>LUCRO LÍQUIDO</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: profit >= 0 ? C.gS : C.red }}>{profit > 0 ? "+" : ""}{profit}€</div>
+          </div>
+        </Card>
+      </div>
+      {showModal && (
+        <Modal title="Nova Despesa" onClose={() => setShowModal(false)}>
+          <Inp label="Descrição" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Inp label="Valor (€)" type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
+            <Sel label="Categoria" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} options={["Instalações", "Material", "Tecnologia", "Seguros", "Marketing", "Serviços", "Pessoal", "Outros"].map(c => ({ value: c, label: c }))} />
+          </div>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.g600, cursor: "pointer", marginBottom: 14 }}>
+            <input type="checkbox" checked={form.recurring} onChange={e => setForm({ ...form, recurring: e.target.checked })} /> Despesa recorrente
+          </label>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <Btn v="ghost" onClick={() => setShowModal(false)}>Cancelar</Btn>
+            <Btn onClick={() => {
+              if (!form.description || !form.amount) return;
+              setExpenses(p => [...p, { id: Date.now(), ...form, amount: Number(form.amount) }]);
+              setShowModal(false);
+              setToast({ message: "Adicionada!", type: "success" });
+            }}>Guardar</Btn>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ===== TEACHER (Compact but properly formatted) =====
+function PageTeacher({ students, setToast }) {
+  const [sel, setSel] = useState(null);
+  const [xtraLessons, setXtraLessons] = useState([]);
+  const [showM, setShowM] = useState(false);
+  const [tab, setTab] = useState("lessons");
+  const [search, setSearch] = useState("");
+  const [form, setForm] = useState({ date: "", summary: "", nextLesson: "", evaluation: "Bom", evalNotes: "", files: "", homework: "" });
+  const [allL] = useState(() => genLessons(genStudents()));
+  const act = students.filter(s => s.status === "ativo").filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+  const sL = sel ? [...allL.filter(l => l.studentId === sel.id), ...xtraLessons.filter(l => l.studentId === sel.id)].sort((a, b) => b.date.localeCompare(a.date)) : [];
+
+  if (!sel) {
+    return (
+      <div>
+        <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: C.g800 }}>Área do Professor</h2>
+        <SBar value={search} onChange={setSearch} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 10 }}>
+          {act.map(s => (
+            <Card key={s.id} onClick={() => { setSel(s); setTab("lessons"); }} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
+              <Av name={s.name} size={38} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: C.g800 }}>{s.name}</div>
+                <div style={{ fontSize: 12, color: C.g400 }}>{s.subjects.join(", ")} · {s.grade}</div>
+                {s.notes && <div style={{ fontSize: 10, color: C.orange, marginTop: 2 }}>📌 {s.notes.slice(0, 35)}...</div>}
+              </div>
+              <Ico d={ICONS.right} size={16} />
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <Btn v="ghost" s="sm" onClick={() => setSel(null)} icon={<Ico d={ICONS.back} />}>Voltar</Btn>
+        <Av name={sel.name} size={36} />
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 16, color: C.g800 }}>{sel.name}</div>
+          <div style={{ fontSize: 12, color: C.g400 }}>{sel.subjects.join(", ")} · {sel.grade}</div>
+        </div>
+      </div>
+      <TabBar tabs={[["lessons", "Aulas"], ["attendance", "Presenças"], ["grades", "Notas Escola"], ["upload", "Documentos"]]} active={tab} onChange={setTab} />
+
+      {tab === "lessons" && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+            <Btn onClick={() => setShowM(true)} icon={<Ico d={ICONS.plus} size={16} />} s="sm">Registar Aula</Btn>
+          </div>
+          {sL.map(l => (
+            <Card key={l.id} style={{ marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: C.g800 }}>
+                  <Ico d={ICONS.schedule} size={14} /> {l.date}
+                </div>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <Bg color={EVAL_C[l.evaluation]}>{l.evaluation}</Bg>
+                  <Bg color={l.attendance ? C.gS : C.red}>{l.attendance ? "P" : "F"}</Bg>
+                </div>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.g400, textTransform: "uppercase", marginBottom: 2 }}>Sumário</div>
+              <div style={{ fontSize: 13, color: C.g800, marginBottom: 4 }}>{l.summary}</div>
+              {l.nextLesson && <div style={{ fontSize: 12, color: C.green, marginBottom: 4 }}>Próxima: {l.nextLesson}</div>}
+              {l.homework && <div style={{ fontSize: 12, color: C.purple, marginBottom: 4 }}>📚 TPC: {l.homework}</div>}
+              {l.files && l.files.length > 0 && (
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {l.files.map((f, i) => <span key={i} style={{ padding: "2px 8px", background: C.greenM, borderRadius: 6, fontSize: 11, color: C.teal }}>{f}</span>)}
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {tab === "attendance" && (
+        <Card>
+          <h4 style={{ margin: "0 0 14px", fontSize: 15, color: C.teal }}>Presenças</h4>
+          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            <div style={{ padding: "8px 16px", background: C.gSL, borderRadius: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.gS }}>{sL.filter(l => l.attendance).length}</div>
+              <div style={{ fontSize: 11, color: C.gS }}>Presenças</div>
+            </div>
+            <div style={{ padding: "8px 16px", background: C.redL, borderRadius: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.red }}>{sL.filter(l => !l.attendance).length}</div>
+              <div style={{ fontSize: 11, color: C.red }}>Faltas</div>
+            </div>
+            <div style={{ padding: "8px 16px", background: `${C.teal}10`, borderRadius: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.teal }}>{sL.length ? Math.round(sL.filter(l => l.attendance).length / sL.length * 100) : 0}%</div>
+              <div style={{ fontSize: 11, color: C.teal }}>Assiduidade</div>
+            </div>
+          </div>
+          {sL.map(l => (
+            <div key={l.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${C.g100}` }}>
+              <span style={{ fontSize: 13 }}>{l.date}</span>
+              <Bg color={l.attendance ? C.gS : C.red}>{l.attendance ? "Presente" : "Falta"}</Bg>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {tab === "grades" && (
+        <Card>
+          <h4 style={{ margin: "0 0 14px", fontSize: 15, color: C.teal }}>Notas da Escola</h4>
+          {sel.schoolGrades && sel.schoolGrades.length > 0 ? (
+            <div>
+              <div style={{ display: "flex", alignItems: "flex-end", height: 120, gap: 16, marginBottom: 16, padding: "0 20px" }}>
+                {sel.schoolGrades.map((g, i) => (
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: g.grade >= 10 ? C.gS : C.red, marginBottom: 4 }}>{g.grade}</div>
+                    <div style={{ width: "100%", height: Math.max((g.grade / 20) * 100, 10), background: g.grade >= 10 ? C.gS : `${C.red}80`, borderRadius: "6px 6px 0 0" }} />
+                    <div style={{ fontSize: 11, color: C.g400, marginTop: 4 }}>{g.period}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: 12, background: C.g100, borderRadius: 10, textAlign: "center" }}>
+                <span style={{ color: C.g600 }}>Média: </span>
+                <span style={{ fontSize: 18, fontWeight: 700, color: C.teal }}>{(sel.schoolGrades.reduce((a, g) => a + g.grade, 0) / sel.schoolGrades.length).toFixed(1)}</span>
+              </div>
+            </div>
+          ) : <p style={{ color: C.g400, textAlign: "center" }}>Sem notas</p>}
+        </Card>
+      )}
+
+      {tab === "upload" && (
+        <Card>
+          <h4 style={{ margin: "0 0 14px", fontSize: 15, color: C.teal }}>Documentos</h4>
+          <div style={{ border: `2px dashed ${C.g300}`, borderRadius: 16, padding: 40, textAlign: "center", cursor: "pointer", marginBottom: 16 }}
+            onDrop={e => { e.preventDefault(); setToast({ message: "Ficheiro carregado!", type: "success" }); }}
+            onDragOver={e => e.preventDefault()}>
+            <div style={{ color: C.teal, marginBottom: 8 }}><Ico d={ICONS.upload} size={24} /></div>
+            <p style={{ margin: "4px 0", fontSize: 14, fontWeight: 600, color: C.g600 }}>Arraste ficheiros aqui</p>
+          </div>
+          {[...new Set(sL.flatMap(l => l.files || []))].map((f, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: C.g100, borderRadius: 10, marginBottom: 4, fontSize: 13 }}>
+              <Ico d={ICONS.file} size={14} /> {f}
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {showM && (
+        <Modal title="Registar Aula" onClose={() => setShowM(false)} wide>
+          <Inp label="Data" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.g600, marginBottom: 4 }}>Sumário</label>
+            <textarea value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })} rows={3} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.g200}`, fontSize: 14, fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Inp label="Próxima Aula" value={form.nextLesson} onChange={e => setForm({ ...form, nextLesson: e.target.value })} />
+            <Inp label="TPC" value={form.homework} onChange={e => setForm({ ...form, homework: e.target.value })} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Sel label="Avaliação" value={form.evaluation} onChange={e => setForm({ ...form, evaluation: e.target.value })} options={EVALS.map(e => ({ value: e, label: e }))} />
+            <Inp label="Notas" value={form.evalNotes} onChange={e => setForm({ ...form, evalNotes: e.target.value })} />
+          </div>
+          <Inp label="Ficheiros (vírgula)" value={form.files} onChange={e => setForm({ ...form, files: e.target.value })} />
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 10 }}>
+            <Btn v="ghost" onClick={() => setShowM(false)}>Cancelar</Btn>
+            <Btn onClick={() => {
+              if (!form.date || !form.summary) return;
+              setXtraLessons(p => [...p, {
+                id: Date.now(), studentId: sel.id, date: form.date, subject: sel.subjects[0],
+                summary: form.summary, nextLesson: form.nextLesson, evaluation: form.evaluation,
+                evalNotes: form.evalNotes, files: form.files ? form.files.split(",").map(f => f.trim()) : [],
+                attendance: true, homework: form.homework,
+              }]);
+              setShowM(false);
+              setForm({ date: "", summary: "", nextLesson: "", evaluation: "Bom", evalNotes: "", files: "", homework: "" });
+              setToast({ message: "Aula registada!", type: "success" });
+            }}>Guardar</Btn>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ===== STUDENT AREA =====
+function PageStudent({ students, payments, setToast }) {
+  const [sel, setSel] = useState(null);
+  const [tab, setTab] = useState("overview");
+  const [search, setSearch] = useState("");
+  const [allL] = useState(() => genLessons(genStudents()));
+  const act = students.filter(s => s.status === "ativo").filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+  const sL = sel ? allL.filter(l => l.studentId === sel.id).sort((a, b) => b.date.localeCompare(a.date)) : [];
+  const sP = sel ? payments.filter(p => p.studentId === sel.id) : [];
+  const debt = sP.filter(p => !p.paid).reduce((a, p) => a + p.amount, 0);
+
+  if (!sel) {
+    return (
+      <div>
+        <h2 style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, color: C.g800 }}>Área do Aluno</h2>
+        <SBar value={search} onChange={setSearch} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 10 }}>
+          {act.map(s => {
+            const d = payments.filter(p => p.studentId === s.id && !p.paid).reduce((a, p) => a + p.amount, 0);
+            return (
+              <Card key={s.id} onClick={() => { setSel(s); setTab("overview"); }} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
+                <Av name={s.name} size={40} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: C.g800 }}>{s.name}</div>
+                  <div style={{ fontSize: 12, color: C.g400 }}>{s.subjects.join(", ")} · {s.grade}</div>
+                </div>
+                {d > 0 && <Bg color={C.red} bg={C.redL}>{d}€</Bg>}
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <Btn v="ghost" s="sm" onClick={() => setSel(null)} icon={<Ico d={ICONS.back} />}>Voltar</Btn>
+        <Av name={sel.name} size={40} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 16, color: C.g800 }}>{sel.name}</div>
+          <div style={{ fontSize: 12, color: C.g400 }}>{sel.subjects.join(", ")} · {sel.grade} · {sel.scheduleDay} {sel.scheduleHour}</div>
+        </div>
+        {debt > 0 && <Bg color={C.red} bg={C.redL}>{debt}€</Bg>}
+      </div>
+      <TabBar tabs={[["overview", "Resumo"], ["lessons", "Aulas"], ["files", "Ficheiros"], ["eval", "Avaliação"], ["grades", "Notas Escola"], ["payments", "Pagamentos"]]} active={tab} onChange={setTab} />
+
+      {tab === "overview" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <Card>
+            <div style={{ fontSize: 11, fontWeight: 600, color: C.g400, textTransform: "uppercase", marginBottom: 6 }}>Última Aula</div>
+            {sL[0] ? (<React.Fragment><div style={{ fontSize: 12, color: C.teal, marginBottom: 4 }}>{sL[0].date}</div><div style={{ fontSize: 14, fontWeight: 500, color: C.g800 }}>{sL[0].summary}</div></React.Fragment>) : <div style={{ color: C.g400 }}>—</div>}
+          </Card>
+          <Card>
+            <div style={{ fontSize: 11, fontWeight: 600, color: C.g400, textTransform: "uppercase", marginBottom: 6 }}>Próxima Aula</div>
+            {(sL[0] && sL[0].nextLesson) ? <div style={{ fontSize: 14, fontWeight: 500, color: C.green }}>{sL[0].nextLesson}</div> : <div style={{ color: C.g400 }}>—</div>}
+          </Card>
+          <Card>
+            <div style={{ fontSize: 11, fontWeight: 600, color: C.g400, textTransform: "uppercase", marginBottom: 6 }}>TPC</div>
+            {(sL[0] && sL[0].homework) ? <div style={{ fontSize: 14, color: C.purple, fontWeight: 500 }}>📚 {sL[0].homework}</div> : <div style={{ color: C.g400 }}>Sem TPC</div>}
+          </Card>
+          <Card style={{ background: debt > 0 ? C.redL : C.gSL }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: debt > 0 ? C.red : C.gS, textTransform: "uppercase", marginBottom: 6 }}>{debt > 0 ? "Pendente" : "Em Dia"}</div>
+            <div style={{ fontSize: 26, fontWeight: 700, color: debt > 0 ? C.red : C.gS }}>{debt}€</div>
+          </Card>
+        </div>
+      )}
+
+      {tab === "lessons" && sL.map(l => (
+        <Card key={l.id} style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: C.g800 }}>{l.date}</span>
+            <div style={{ display: "flex", gap: 4 }}>
+              <Bg color={EVAL_C[l.evaluation]}>{l.evaluation}</Bg>
+              <Bg color={l.attendance ? C.gS : C.red}>{l.attendance ? "P" : "F"}</Bg>
+            </div>
+          </div>
+          <div style={{ fontSize: 13, color: C.g800, marginBottom: 4 }}>{l.summary}</div>
+          {l.nextLesson && <div style={{ fontSize: 12, color: C.green }}>Próxima: {l.nextLesson}</div>}
+          {l.homework && <div style={{ fontSize: 12, color: C.purple, marginTop: 2 }}>📚 TPC: {l.homework}</div>}
+        </Card>
+      ))}
+
+      {tab === "files" && (
+        <Card>
+          <h4 style={{ margin: "0 0 14px", fontSize: 15, color: C.teal }}>Os Meus Ficheiros</h4>
+          {sL.flatMap(l => (l.files || []).map(f => ({ file: f, date: l.date }))).map((it, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: C.g100, borderRadius: 10, marginBottom: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 8, background: C.greenM, display: "flex", alignItems: "center", justifyContent: "center", color: C.teal }}>
+                  <Ico d={ICONS.file} size={14} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.g800 }}>{it.file}</div>
+                  <div style={{ fontSize: 11, color: C.g400 }}>{it.date}</div>
+                </div>
+              </div>
+              <Btn v="outline" s="sm" icon={<Ico d={ICONS.download} size={14} />} onClick={() => setToast({ message: `Download: ${it.file}`, type: "success" })}>Download</Btn>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {tab === "eval" && sL.filter(l => l.evaluation).map(l => (
+        <Card key={l.id} style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.g800 }}>{l.date}</span>
+            <Bg color={EVAL_C[l.evaluation]}>{l.evaluation}</Bg>
+          </div>
+          <div style={{ fontSize: 13, color: C.g600 }}>{l.evalNotes}</div>
+        </Card>
+      ))}
+
+      {tab === "grades" && (
+        <Card>
+          <h4 style={{ margin: "0 0 14px", fontSize: 15, color: C.teal }}>Notas da Escola</h4>
+          {sel.schoolGrades && sel.schoolGrades.length > 0 ? (
+            <div>
+              <div style={{ display: "flex", alignItems: "flex-end", height: 100, gap: 16, marginBottom: 12, padding: "0 20px" }}>
+                {sel.schoolGrades.map((g, i) => (
+                  <div key={i} style={{ flex: 1, textAlign: "center" }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: g.grade >= 10 ? C.gS : C.red, marginBottom: 4 }}>{g.grade}</div>
+                    <div style={{ height: Math.max((g.grade / 20) * 80, 8), background: g.grade >= 10 ? C.gS : `${C.red}80`, borderRadius: "6px 6px 0 0", marginBottom: 4 }} />
+                    <div style={{ fontSize: 11, color: C.g400 }}>{g.period}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: 10, background: C.g100, borderRadius: 10, textAlign: "center" }}>
+                <span style={{ color: C.g600 }}>Média: </span>
+                <span style={{ fontSize: 18, fontWeight: 700, color: C.teal }}>{(sel.schoolGrades.reduce((a, g) => a + g.grade, 0) / sel.schoolGrades.length).toFixed(1)}</span>
+              </div>
+            </div>
+          ) : <p style={{ color: C.g400, textAlign: "center" }}>Sem notas</p>}
+        </Card>
+      )}
+
+      {tab === "payments" && (
+        <div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+            <Card style={{ background: C.gSL, textAlign: "center" }}>
+              <div style={{ fontSize: 12, color: C.gS, fontWeight: 600 }}>Pago</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: C.gS }}>{sP.filter(p => p.paid).reduce((a, p) => a + p.amount, 0)}€</div>
+            </Card>
+            <Card style={{ background: debt > 0 ? C.redL : C.g100, textAlign: "center" }}>
+              <div style={{ fontSize: 12, color: debt > 0 ? C.red : C.g400, fontWeight: 600 }}>Pendente</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: debt > 0 ? C.red : C.g400 }}>{debt}€</div>
+            </Card>
+          </div>
+          {sP.map(p => (
+            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "#fff", borderRadius: 12, marginBottom: 6, border: `1px solid ${p.paid ? C.g200 : `${C.red}30`}` }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.g800 }}>{p.month}</div>
+                {p.paidDate && <div style={{ fontSize: 11, color: C.g400 }}>Pago em {p.paidDate}</div>}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 700 }}>{p.amount}€</span>
+                <Bg color={p.paid ? C.gS : C.red} bg={p.paid ? C.gSL : C.redL}>{p.paid ? "Pago" : "Pendente"}</Bg>
+              </div>
+            </div>
+          ))}
+          {debt > 0 && (
+            <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "center" }}>
+              <Btn v="outline" icon={<Ico d={ICONS.file} size={14} />} onClick={() => {
+                const txt = `Olá! 👋\nLembrete da *XelbMinds*.\n${sel.name} — dívida: *${debt}€*\nAgradecemos a regularização.\nObrigado! 🙏`;
+                navigator.clipboard.writeText(txt);
+                setToast({ message: "Mensagem copiada!", type: "success" });
+              }}>Copiar Mensagem</Btn>
+              <Btn v="wa" icon={<WaIcon />} onClick={() => {
+                const msg = encodeURIComponent(`Olá! 👋\n*XelbMinds*\n${sel.name} — dívida: *${debt}€*\nObrigado! 🙏`);
+                window.open(`https://wa.me/?text=${msg}`, "_blank");
+              }}>Abrir WhatsApp</Btn>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===== SETTINGS =====
+function PageSettings({ setToast }) {
+  const [settings, setSettings] = useState({
+    businessName: "XelbMinds", tagline: "Aprender & Crescer",
+    phone: "912345678", email: "info@xelbminds.pt",
+    address: "Rua das Explicações, 123", monthlyFee: 100,
+    waTemplate: "Olá! 👋\nLembrete da *XelbMinds*.\nPagamento *{MES}*: *{VALOR}€* — *{ALUNO}*\nObrigado! 🙏",
+  });
+
+  return (
+    <div>
+      <h2 style={{ margin: "0 0 24px", fontSize: 22, fontWeight: 700, color: C.g800 }}>Definições</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <Card>
+          <h4 style={{ margin: "0 0 16px", fontSize: 15, color: C.teal, fontWeight: 700 }}>Informações do Centro</h4>
+          <Inp label="Nome" value={settings.businessName} onChange={e => setSettings({ ...settings, businessName: e.target.value })} />
+          <Inp label="Slogan" value={settings.tagline} onChange={e => setSettings({ ...settings, tagline: e.target.value })} />
+          <Inp label="Telefone" value={settings.phone} onChange={e => setSettings({ ...settings, phone: e.target.value })} />
+          <Inp label="Email" value={settings.email} onChange={e => setSettings({ ...settings, email: e.target.value })} />
+          <Inp label="Morada" value={settings.address} onChange={e => setSettings({ ...settings, address: e.target.value })} />
+          <Inp label="Mensalidade (€)" type="number" value={settings.monthlyFee} onChange={e => setSettings({ ...settings, monthlyFee: Number(e.target.value) })} />
+        </Card>
+        <div>
+          <Card style={{ marginBottom: 16 }}>
+            <h4 style={{ margin: "0 0 16px", fontSize: 15, color: C.teal, fontWeight: 700 }}>Template WhatsApp</h4>
+            <textarea value={settings.waTemplate} onChange={e => setSettings({ ...settings, waTemplate: e.target.value })} rows={5} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.g200}`, fontSize: 13, fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box", marginBottom: 8 }} />
+            <div style={{ fontSize: 11, color: C.g400 }}>Variáveis: {"{MES}"} {"{VALOR}"} {"{ALUNO}"} {"{DIVIDA_TOTAL}"}</div>
+          </Card>
+          <Card>
+            <h4 style={{ margin: "0 0 16px", fontSize: 15, color: C.teal, fontWeight: 700 }}>Exportações</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <Btn v="outline" icon={<Ico d={ICONS.upload} size={14} />} onClick={() => setToast({ message: "Alunos exportados!", type: "success" })}>Exportar Alunos (CSV)</Btn>
+              <Btn v="outline" icon={<Ico d={ICONS.upload} size={14} />} onClick={() => setToast({ message: "Pagamentos exportados!", type: "success" })}>Exportar Pagamentos (CSV)</Btn>
+              <Btn v="outline" icon={<Ico d={ICONS.printer} size={14} />} onClick={() => setToast({ message: "Relatório gerado!", type: "success" })}>Relatório Mensal</Btn>
+            </div>
+          </Card>
+        </div>
+      </div>
+      <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+        <Btn onClick={() => setToast({ message: "Definições guardadas!", type: "success" })} icon={<Ico d={ICONS.check} size={14} />}>Guardar</Btn>
+      </div>
+    </div>
+  );
+}
+
+// ===== MAIN APP =====
+function App() {
+  const [page, setPage] = useState("dashboard");
+  const [sidebar, setSidebar] = useState(true);
+  const [toast, setToast] = useState(null);
+  const [students, setStudents] = useState(genStudents);
+  const [payments, setPayments] = useState(() => genPayments(genStudents()));
+  const [allL] = useState(() => genLessons(genStudents()));
+  const [expenses, setExpenses] = useState(genExpenses);
+  const pc = payments.filter(p => !p.paid).length;
+
+  const menu = [
+    { id: "dashboard", label: "Painel", icon: ICONS.dashboard },
+    { id: "schedule", label: "Horário", icon: ICONS.schedule },
+    { id: "students", label: "Alunos", icon: ICONS.students },
+    { id: "financial", label: "Financeiro", icon: ICONS.money, badge: pc },
+    { id: "expenses", label: "Despesas", icon: ICONS.expense },
+    { id: "teacher", label: "Professor", icon: ICONS.teacher },
+    { id: "student-area", label: "Área Aluno", icon: ICONS.student },
+    { id: "settings", label: "Definições", icon: ICONS.settings },
+  ];
+
+  return (
+    <div style={{ fontFamily: "'DM Sans','Segoe UI',sans-serif", minHeight: "100vh", background: C.offW, display: "flex" }}>
+      <style>{`@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}button:hover{filter:brightness(0.95)}table tr:hover{background:${C.g100}40}`}</style>
+
+      {/* Sidebar */}
+      <div style={{ width: sidebar ? 220 : 64, minHeight: "100vh", background: "#fff", borderRight: `1px solid ${C.g200}`, transition: "width .3s", overflow: "hidden", flexShrink: 0, display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: sidebar ? "18px 16px" : "18px 12px", borderBottom: `1px solid ${C.g200}` }}>
+          {sidebar ? <Logo size={34} /> : (
+            <div onClick={() => setSidebar(true)} style={{ width: 36, height: 36, borderRadius: "50%", background: `linear-gradient(135deg,${C.greenL},${C.green})`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <span style={{ color: "#fff", fontWeight: 800, fontSize: 14 }}>X</span>
+            </div>
+          )}
+        </div>
+        <nav style={{ flex: 1, padding: "8px 6px", overflowY: "auto" }}>
+          {menu.map(m => (
+            <button key={m.id} onClick={() => setPage(m.id)} style={{
+              display: "flex", alignItems: "center", gap: 10, width: "100%",
+              padding: sidebar ? "9px 12px" : "9px 0", justifyContent: sidebar ? "flex-start" : "center",
+              border: "none", borderRadius: 10, cursor: "pointer",
+              background: page === m.id ? `${C.teal}10` : "transparent",
+              color: page === m.id ? C.teal : C.g600,
+              fontFamily: "inherit", fontSize: 13, fontWeight: page === m.id ? 600 : 500, marginBottom: 1,
+            }}>
+              <Ico d={m.icon} />
+              {sidebar && <span>{m.label}</span>}
+              {m.badge > 0 && sidebar && (
+                <span style={{ marginLeft: "auto", minWidth: 20, height: 18, borderRadius: 9, background: C.red, color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>
+                  {m.badge > 99 ? "99+" : m.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+        <div style={{ padding: "10px 6px", borderTop: `1px solid ${C.g200}` }}>
+          <button onClick={() => setSidebar(!sidebar)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", padding: 8, border: "none", borderRadius: 8, background: C.g100, cursor: "pointer", color: C.g600, fontFamily: "inherit", fontSize: 11 }}>
+            {sidebar ? "← Recolher" : "→"}
+          </button>
+        </div>
+      </div>
+
+      {/* Main */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <header style={{ height: 56, background: "#fff", borderBottom: `1px solid ${C.g200}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => setSidebar(!sidebar)} style={{ background: "none", border: "none", cursor: "pointer", color: C.g600, display: "flex" }}><Ico d={ICONS.menu} size={24} /></button>
+            <span style={{ fontSize: 15, fontWeight: 600, color: C.g800 }}>{(menu.find(m => m.id === page) || {}).label}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ fontSize: 12, color: C.g400, textAlign: "right" }}>
+              <div style={{ fontWeight: 600, color: C.g800 }}>Administrador</div>
+            </div>
+            <Av name="Admin XM" size={32} />
+          </div>
+        </header>
+        <main style={{ flex: 1, padding: 24, overflowY: "auto" }}>
+          {page === "dashboard" && <PageDashboard students={students} payments={payments} lessons={allL} expenses={expenses} />}
+          {page === "schedule" && <PageSchedule students={students} />}
+          {page === "students" && <PageStudents students={students} setStudents={setStudents} setToast={setToast} />}
+          {page === "financial" && <PageFinancial payments={payments} setPayments={setPayments} students={students} setToast={setToast} />}
+          {page === "expenses" && <PageExpenses expenses={expenses} setExpenses={setExpenses} payments={payments} setToast={setToast} />}
+          {page === "teacher" && <PageTeacher students={students} setToast={setToast} />}
+          {page === "student-area" && <PageStudent students={students} payments={payments} setToast={setToast} />}
+          {page === "settings" && <PageSettings setToast={setToast} />}
+        </main>
+      </div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
+
+    // Render
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+  </script>
+
+  <script>
+    // Fallback error handler
+    window.onerror = function(msg, url, line, col, error) {
+      document.getElementById('root').innerHTML = '<div style="padding:40px;color:#E53935;font-family:monospace"><h3>Erro:</h3><pre>' + msg + '\nLine: ' + line + '</pre></div>';
+    };
+  </script>
+</body>
+</html>
