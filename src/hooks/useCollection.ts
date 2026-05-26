@@ -9,28 +9,35 @@ import type {
   ExtraClassRequest, Goal, Notification, CommunicationLog, AppSettings
 } from '@/types'
 
-function useService<T>(serviceList: () => Promise<T[]>): [T[], () => Promise<void>, boolean] {
-  const [data, setData] = useState<T[]>([])
-  const [loading, setLoading] = useState(true)
-  const reload = useCallback(async () => {
-    setLoading(true)
-    setData(await serviceList())
-    setLoading(false)
-  }, [serviceList])
-  useEffect(() => { void reload() }, [reload])
-  return [data, reload, loading]
+/**
+ * Factory that closes over the service once. The returned hook has a stable
+ * reload reference (empty dep array), so useEffect runs exactly once per mount.
+ */
+function makeCollectionHook<T>(fetcher: () => Promise<T[]>) {
+  return function useCollection(): [T[], () => Promise<void>, boolean] {
+    const [data, setData] = useState<T[]>([])
+    const [loading, setLoading] = useState(true)
+    const reload = useCallback(async () => {
+      setLoading(true)
+      const next = await fetcher()
+      setData(next)
+      setLoading(false)
+    }, [])
+    useEffect(() => { void reload() }, [reload])
+    return [data, reload, loading]
+  }
 }
 
-export const useStudents = () => useService<Student>(() => studentsService.list())
-export const usePayments = () => useService<Payment>(() => paymentsService.list())
-export const useLessons = () => useService<Lesson>(() => lessonsService.list())
-export const useExpenses = () => useService<Expense>(() => expensesService.list())
-export const useLeads = () => useService<Lead>(() => leadsService.list())
-export const useMaterials = () => useService<Material>(() => materialsService.list())
-export const useExtraClasses = () => useService<ExtraClassRequest>(() => extraClassService.list())
-export const useGoals = () => useService<Goal>(() => goalsService.list())
-export const useNotifications = () => useService<Notification>(() => notificationsService.list())
-export const useCommLogs = () => useService<CommunicationLog>(() => commLogsService.list())
+export const useStudents = makeCollectionHook<Student>(() => studentsService.list())
+export const usePayments = makeCollectionHook<Payment>(() => paymentsService.list())
+export const useLessons = makeCollectionHook<Lesson>(() => lessonsService.list())
+export const useExpenses = makeCollectionHook<Expense>(() => expensesService.list())
+export const useLeads = makeCollectionHook<Lead>(() => leadsService.list())
+export const useMaterials = makeCollectionHook<Material>(() => materialsService.list())
+export const useExtraClasses = makeCollectionHook<ExtraClassRequest>(() => extraClassService.list())
+export const useGoals = makeCollectionHook<Goal>(() => goalsService.list())
+export const useNotifications = makeCollectionHook<Notification>(() => notificationsService.list())
+export const useCommLogs = makeCollectionHook<CommunicationLog>(() => commLogsService.list())
 
 export function useSettings(): [AppSettings | null, (patch: Partial<AppSettings>) => Promise<void>] {
   const [settings, setSettings] = useState<AppSettings | null>(null)
