@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply font-sans text-ink-800 antialiased bg-ink-50;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  *:focus-visible {
+    @apply outline-none ring-2 ring-teal-500 ring-offset-2 ring-offset-white rounded-md;
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: theme('colors.ink.200'); border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: theme('colors.ink.300'); }
+}
+
+@layer components {
+  .glass-divider { @apply border-b border-ink-200/60; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
